@@ -1,0 +1,34 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --surface: 255 255 255;
+    --surface-2: 249 250 251;
+    --border: 229 231 235;
+    --text-primary: 15 23 42;
+    --text-secondary: 100 116 139;
+    --input-bg: 255 255 255;
+    --input-border: 209 213 219;
+  }
+
+  html.dark {
+    --surface: 17 24 39;
+    --surface-2: 9 9 11;
+    --border: 55 65 81;
+    --text-primary: 241 245 249;
+    --text-secondary: 148 163 184;
+    --input-bg: 31 41 55;
+    --input-border: 75 85 99;
+  }
+
+  html {
+    transition: background-color 0.15s, color 0.15s;
+  }
+
+  body {
+    background-color: rgb(var(--surface-2));
+    color: rgb(var(--text-primary));
+  }
+}

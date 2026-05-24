@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/png" href="/ProgressPercentLogo copy.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Project Percent Milestone Tracker</title>
+    <!-- CSP is enforced via HTTP response headers (public/_headers for production,
+         vite.config.ts for dev/preview). No meta CSP fallback is used here because
+         @vitejs/plugin-react injects an inline preamble script during development
+         that a restrictive meta-tag CSP blocks, causing a blank page.
+         Production builds are served with the full restrictive CSP from _headers. -->
+    <meta name="referrer" content="strict-origin-when-cross-origin">
+    <meta property="og:image" content="https://bolt.new/static/og_default.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:image" content="https://bolt.new/static/og_default.png" />
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
