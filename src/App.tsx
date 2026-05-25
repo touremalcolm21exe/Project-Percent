@@ -169,6 +169,16 @@ export default function App() {
         setEmailConfirmed(isEmailConfirmed(data.user));
         setAuthLoading(false);
 
+        const userId = data.user?.id;
+        if (userId) {
+          supabase
+            .from('user_profiles')
+            .select('plan')
+            .eq('id', userId)
+            .maybeSingle()
+            .then(({ data: profile }) => setIsPremium(profile?.plan === 'premium'));
+        }
+
         const current = viewRef.current;
         if (data.user) {
           if (current.page !== 'auth' || current.view !== 'reset-password') {
@@ -208,6 +218,15 @@ export default function App() {
           }
         }
 
+        if (session?.user && (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED')) {
+          supabase
+            .from('user_profiles')
+            .select('plan')
+            .eq('id', session.user.id)
+            .maybeSingle()
+            .then(({ data }) => setIsPremium(data?.plan === 'premium'));
+        }
+
         if (event === 'SIGNED_OUT') {
           setSession(null);
           setEmailConfirmed(true);
@@ -218,8 +237,20 @@ export default function App() {
 
     function handleVisibilityChange() {
       if (document.visibilityState === 'visible') {
-        supabase.auth.getUser().then(({ error }) => {
-          if (error) supabase.auth.signOut({ scope: 'local' });
+        supabase.auth.getUser().then(({ data, error }) => {
+          if (error) {
+            supabase.auth.signOut({ scope: 'local' });
+            return;
+          }
+          const userId = data.user?.id;
+          if (userId) {
+            supabase
+              .from('user_profiles')
+              .select('plan')
+              .eq('id', userId)
+              .maybeSingle()
+              .then(({ data: profile }) => setIsPremium(profile?.plan === 'premium'));
+          }
         });
       }
     }

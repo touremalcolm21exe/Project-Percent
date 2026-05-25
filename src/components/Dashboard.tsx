@@ -40,6 +40,41 @@ export default function Dashboard({ onSelectProject, onSettings, onPlanLoaded, u
     });
   }, []);
 
+  // After checkout redirect, poll until webhook promotes plan (or give up).
+  useEffect(() => {
+    if (!upgradeSuccess) return;
+
+    let attempts = 0;
+    const maxAttempts = 12;
+
+    async function pollProfile() {
+      const { data: userData } = await supabase.auth.getUser();
+      const userId = userData.user?.id;
+      if (!userId) return;
+
+      const { data: profileData } = await supabase
+        .from('user_profiles')
+        .select('id, plan, stripe_customer_id, stripe_subscription_id, projects_created_count, created_at, updated_at')
+        .eq('id', userId)
+        .maybeSingle();
+
+      if (profileData) {
+        setProfile(profileData);
+        onPlanLoaded?.(profileData.plan === 'premium');
+      }
+    }
+
+    const interval = setInterval(() => {
+      attempts += 1;
+      void pollProfile();
+      if (attempts >= maxAttempts) clearInterval(interval);
+    }, 2000);
+
+    void pollProfile();
+
+    return () => clearInterval(interval);
+  }, [upgradeSuccess, onPlanLoaded]);
+
   useEffect(() => {
     if (!showSuccessBanner) return;
     const t = setTimeout(() => setShowSuccessBanner(false), 6000);

@@ -1,0 +1,6 @@
+# Stripe sends webhooks without a Supabase JWT — signature verification is enough.
+[functions.stripe-webhook]
+verify_jwt = false
+
+[functions.backfill-premium-entitlements]
+verify_jwt = false

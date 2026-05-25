@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { startCheckout } from '../lib/checkout';
+import { useUserPlan } from '../hooks/useUserPlan';
 import { checkPassword } from '../lib/passwordStrength';
 import type { ThemePreference } from '../lib/useTheme';
 import {
@@ -384,8 +385,8 @@ function AppearanceSection({ theme, setTheme }: { theme: ThemePreference; setThe
 // ── Subscription section ──────────────────────────────────────────────────────
 
 function SubscriptionSection() {
-  const [plan, setPlan] = useState<'free' | 'premium' | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { plan: userPlan, loading, refresh: refreshPlan } = useUserPlan();
+  const plan = loading ? null : userPlan;
   const [portalLoading, setPortalLoading] = useState(false);
   const [upgradeLoading, setUpgradeLoading] = useState(false);
   const [cancelLoading, setCancelLoading] = useState(false);
@@ -403,13 +404,6 @@ function SubscriptionSection() {
       setUpgradeLoading(false);
     }
   }
-
-  useEffect(() => {
-    supabase.from('user_profiles').select('plan').maybeSingle().then(({ data }) => {
-      setPlan(data?.plan ?? 'free');
-      setLoading(false);
-    });
-  }, []);
 
   async function openBillingPortal() {
     setPortalLoading(true);
@@ -453,6 +447,7 @@ function SubscriptionSection() {
       if (!res.ok) throw new Error(json.error ?? 'Could not cancel subscription');
       setCancelScheduledAt(json.cancelAt);
       setShowCancelConfirm(false);
+      void refreshPlan();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Could not cancel subscription. Please try again.');
     }

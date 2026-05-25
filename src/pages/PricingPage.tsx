@@ -3,11 +3,13 @@ import { Check, Crown } from 'lucide-react';
 import { STRIPE_PRODUCTS } from '../stripe-config';
 import { useAuth } from '../hooks/useAuth';
 import { useSubscription } from '../hooks/useSubscription';
+import { useUserPlan } from '../hooks/useUserPlan';
 import { createCheckoutSession } from '../lib/stripe';
 
 export function PricingPage() {
   const { user } = useAuth();
   const { subscription, loading: subscriptionLoading } = useSubscription();
+  const { isPremium, loading: planLoading } = useUserPlan();
   const [loadingProductId, setLoadingProductId] = useState<string | null>(null);
 
   const handleSubscribe = async (priceId: string) => {
@@ -37,7 +39,12 @@ export function PricingPage() {
   };
 
   const isCurrentPlan = (priceId: string) => {
-    return subscription?.price_id === priceId && subscription?.subscription_status === 'active';
+    if (!isPremium) return false;
+    // Main checkout path updates user_profiles.plan; stripe_user_subscriptions may be absent.
+    if (!subscription?.price_id) return true;
+    const status = subscription.subscription_status;
+    const active = status === 'active' || status === 'trialing' || status === 'past_due';
+    return active && subscription.price_id === priceId;
   };
 
   return (
@@ -119,6 +126,7 @@ export function PricingPage() {
                   onClick={() => handleSubscribe(product.priceId)}
                   disabled={
                     subscriptionLoading ||
+                    planLoading ||
                     loadingProductId === product.priceId ||
                     isCurrentPlan(product.priceId)
                   }
