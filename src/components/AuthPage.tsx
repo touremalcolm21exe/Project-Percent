@@ -243,7 +243,7 @@ function SignupView({ onSwitchLogin, onBack, onVerify }: SignupProps) {
     if (!rl.canSubmit()) return;
 
     setLoading(true);
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
@@ -252,9 +252,10 @@ function SignupView({ onSwitchLogin, onBack, onVerify }: SignupProps) {
     });
     if (error) {
       rl.recordFailure();
-      console.error('[signup] auth error:', error);
-      setError('Could not create account. Please check your details and try again.');
-      auditLog('signup_failure', { reason: 'auth_error' });
+      console.error('[signup] signUp response:', { data, error });
+      console.error('[signup] auth error (full):', error);
+      setError(error.message || 'Could not create account. Please check your details and try again.');
+      auditLog('signup_failure', { reason: 'auth_error', message: error.message });
     } else {
       auditLog('signup_success', {});
       onVerify(email);
