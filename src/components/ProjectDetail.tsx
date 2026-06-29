@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { supabase } from '../lib/supabase';
 import { auditLog } from '../lib/audit';
+import { buildShareUrl, setProjectSharing } from '../lib/shareProject';
 import { downloadProject } from '../lib/downloadProject';
 import type { Project, Milestone } from '../lib/database.types';
 import {
@@ -28,6 +29,9 @@ import {
   Download,
   Settings,
   Sparkles,
+  Share2,
+  Copy,
+  Lock,
 } from 'lucide-react';
 import { startCheckout } from '../lib/checkout';
 
@@ -47,6 +51,175 @@ interface ProjectDetailProps {
   onBack: () => void;
   onSettings: () => void;
   isPremium?: boolean;
+}
+
+function ShareButton({
+  project,
+  isPremium,
+  onProjectUpdate,
+  onUpgrade,
+  upgradeLoading,
+}: {
+  project: Project;
+  isPremium: boolean;
+  onProjectUpdate: (updates: Partial<Project>) => void;
+  onUpgrade: () => void;
+  upgradeLoading: boolean;
+}) {
+  const [open, setOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [copied, setCopied] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    function close(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    }
+    document.addEventListener('mousedown', close);
+    return () => document.removeEventListener('mousedown', close);
+  }, [open]);
+
+  useEffect(() => {
+    if (!copied) return;
+    const t = setTimeout(() => setCopied(false), 2000);
+    return () => clearTimeout(t);
+  }, [copied]);
+
+  const shareUrl = project.share_token ? buildShareUrl(project.share_token) : '';
+
+  async function handleToggle(enabled: boolean) {
+    if (!isPremium) {
+      onUpgrade();
+      return;
+    }
+
+    setLoading(true);
+    setError('');
+    const { shareToken, error: shareError } = await setProjectSharing(project.id, enabled);
+    setLoading(false);
+
+    if (shareError) {
+      setError(shareError);
+      return;
+    }
+
+    onProjectUpdate({
+      is_public: enabled,
+      share_token: enabled ? shareToken ?? project.share_token : project.share_token,
+    });
+  }
+
+  async function handleCopy() {
+    if (!shareUrl) return;
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      setCopied(true);
+    } catch {
+      setError('Could not copy link. Please copy it manually.');
+    }
+  }
+
+  return (
+    <div className="relative" ref={ref}>
+      <button
+        onClick={() => setOpen((v) => !v)}
+        className={`flex items-center gap-1.5 p-2 rounded-lg transition-colors ${
+          project.is_public
+            ? 'text-brand-600 bg-brand-50 dark:bg-brand-950 hover:bg-brand-100 dark:hover:bg-brand-900'
+            : 'text-slate-400 hover:text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-950'
+        }`}
+        title="Share project"
+      >
+        <Share2 className="w-4 h-4" />
+      </button>
+      {open && (
+        <div className="absolute right-0 top-full mt-1.5 w-80 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-lg dark:shadow-gray-950 z-20 overflow-hidden">
+          <div className="px-4 py-3 border-b border-gray-100 dark:border-gray-700">
+            <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">Public share link</p>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+              Anyone with the link can view this project&apos;s progress.
+            </p>
+          </div>
+
+          <div className="px-4 py-3 space-y-3">
+            {!isPremium ? (
+              <div className="rounded-lg bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900 px-3 py-2.5">
+                <div className="flex items-start gap-2">
+                  <Lock className="w-4 h-4 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-sm font-medium text-amber-900 dark:text-amber-100">Premium feature</p>
+                    <p className="text-xs text-amber-700 dark:text-amber-300 mt-0.5">
+                      Upgrade to share a public read-only link to this project.
+                    </p>
+                    <button
+                      onClick={onUpgrade}
+                      disabled={upgradeLoading}
+                      className="mt-2 inline-flex items-center gap-1.5 bg-brand-gradient text-white text-xs font-semibold px-3 py-1.5 rounded-full transition-opacity hover:opacity-90 disabled:opacity-60"
+                    >
+                      {upgradeLoading ? (
+                        <span className="w-3 h-3 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+                      ) : (
+                        <Sparkles className="w-3 h-3" />
+                      )}
+                      Upgrade
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <>
+                <label className="flex items-center justify-between gap-3">
+                  <span className="text-sm text-slate-700 dark:text-slate-300">Enable public link</span>
+                  <button
+                    type="button"
+                    role="switch"
+                    aria-checked={project.is_public}
+                    disabled={loading}
+                    onClick={() => void handleToggle(!project.is_public)}
+                    className={`relative inline-flex h-6 w-11 flex-shrink-0 rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-brand-400 focus:ring-offset-2 disabled:opacity-60 ${
+                      project.is_public ? 'bg-brand-500' : 'bg-gray-200 dark:bg-gray-700'
+                    }`}
+                  >
+                    <span
+                      className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ${
+                        project.is_public ? 'translate-x-5' : 'translate-x-0'
+                      }`}
+                    />
+                  </button>
+                </label>
+
+                {project.is_public && shareUrl && (
+                  <div className="space-y-2">
+                    <p className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wide">Share URL</p>
+                    <div className="flex items-center gap-2">
+                      <input
+                        readOnly
+                        value={shareUrl}
+                        className="flex-1 min-w-0 px-2.5 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 text-xs text-slate-700 dark:text-slate-300"
+                      />
+                      <button
+                        onClick={() => void handleCopy()}
+                        className="flex items-center gap-1 px-2.5 py-2 rounded-lg border border-gray-200 dark:border-gray-700 text-slate-600 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-gray-900 text-xs font-medium transition-colors"
+                      >
+                        {copied ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5" />}
+                        {copied ? 'Copied' : 'Copy'}
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
+
+            {error && (
+              <p className="text-xs text-red-500">{error}</p>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
 }
 
 function DownloadButton({ project, milestones }: { project: Project; milestones: Milestone[] }) {
@@ -510,6 +683,13 @@ function ProjectDetail({ projectId, onBack, onSettings, isPremium = true }: Proj
                 )}
               </div>
               <div className="flex items-center gap-1 flex-shrink-0">
+                <ShareButton
+                  project={project}
+                  isPremium={!!isPremium}
+                  onProjectUpdate={(updates) => setProject((prev) => prev ? { ...prev, ...updates } : prev)}
+                  onUpgrade={handleUpgrade}
+                  upgradeLoading={upgradeLoading}
+                />
                 <DownloadButton project={project} milestones={milestones} />
                 <button
                   onClick={openProjectEdit}
