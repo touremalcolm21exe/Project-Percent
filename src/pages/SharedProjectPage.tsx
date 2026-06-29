@@ -11,13 +11,13 @@ function calcPercent(milestones: SharedProject['milestones']): number {
 }
 
 export function SharedProjectPage() {
-  const { token } = useParams<{ token: string }>();
+  const { publicProjectId } = useParams<{ publicProjectId: string }>();
   const [project, setProject] = useState<SharedProject | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
 
   useEffect(() => {
-    if (!token) {
+    if (!publicProjectId) {
       setNotFound(true);
       setLoading(false);
       return;
@@ -27,7 +27,7 @@ export function SharedProjectPage() {
 
     async function load() {
       setLoading(true);
-      const data = await fetchSharedProject(token!);
+      const data = await fetchSharedProject(publicProjectId);
       if (cancelled) return;
 
       if (!data) {
@@ -44,7 +44,7 @@ export function SharedProjectPage() {
     return () => {
       cancelled = true;
     };
-  }, [token]);
+  }, [publicProjectId]);
 
   if (loading) {
     return (

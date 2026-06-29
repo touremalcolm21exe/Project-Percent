@@ -90,7 +90,7 @@ export interface Database {
           progress_percent: number;
           progress_color: string | null;
           is_public: boolean;
-          share_token: string | null;
+          public_id: string | null;
           created_at: string;
           updated_at: string;
           deleted_at: string | null;
@@ -103,7 +103,7 @@ export interface Database {
           progress_percent?: number;
           progress_color?: string | null;
           is_public?: boolean;
-          share_token?: string | null;
+          public_id?: string | null;
           created_at?: string;
           updated_at?: string;
           deleted_at?: string | null;
@@ -116,7 +116,7 @@ export interface Database {
           progress_percent?: number;
           progress_color?: string | null;
           is_public?: boolean;
-          share_token?: string | null;
+          public_id?: string | null;
           created_at?: string;
           updated_at?: string;
           deleted_at?: string | null;
@@ -158,7 +158,7 @@ export interface Database {
     Views: Record<string, never>;
     Functions: {
       get_shared_project: {
-        Args: { p_share_token: string };
+        Args: { p_public_id: string };
         Returns: Json | null;
       };
       set_project_sharing: {

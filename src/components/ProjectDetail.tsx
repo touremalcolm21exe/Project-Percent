@@ -87,7 +87,7 @@ function ShareButton({
     return () => clearTimeout(t);
   }, [copied]);
 
-  const shareUrl = project.share_token ? buildShareUrl(project.share_token) : '';
+  const shareUrl = project.public_id ? buildShareUrl(project.public_id) : '';
 
   async function handleToggle(enabled: boolean) {
     if (!isPremium) {
@@ -97,7 +97,7 @@ function ShareButton({
 
     setLoading(true);
     setError('');
-    const { shareToken, error: shareError } = await setProjectSharing(project.id, enabled);
+    const { publicProjectId, error: shareError } = await setProjectSharing(project.id, enabled);
     setLoading(false);
 
     if (shareError) {
@@ -107,7 +107,7 @@ function ShareButton({
 
     onProjectUpdate({
       is_public: enabled,
-      share_token: enabled ? shareToken ?? project.share_token : project.share_token,
+      public_id: enabled ? publicProjectId ?? project.public_id : project.public_id,
     });
   }
 

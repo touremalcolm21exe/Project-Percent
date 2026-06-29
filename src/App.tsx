@@ -155,7 +155,7 @@ function isEmailConfirmed(user: { email_confirmed_at?: string | null } | null): 
 export default function App() {
   return (
     <Routes>
-      <Route path="/share/:token" element={<SharedProjectPage />} />
+      <Route path="/share/:publicProjectId" element={<SharedProjectPage />} />
       <Route path="/*" element={<AppShell />} />
     </Routes>
   );
