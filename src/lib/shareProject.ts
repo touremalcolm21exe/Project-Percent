@@ -14,6 +14,8 @@ export interface SharedProject {
   progress_color: string | null;
   updated_at: string;
   milestones: SharedMilestone[];
+  /** True when the owner is on the free plan (show "Made with Project Percent"). */
+  show_branding: boolean;
 }
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -78,6 +80,7 @@ export function parseSharedProject(payload: unknown): SharedProject | null {
     progress_color: typeof record.progress_color === 'string' ? record.progress_color : null,
     updated_at: asString(record.updated_at, new Date().toISOString()),
     milestones,
+    show_branding: record.show_branding === true,
   };
 }
 

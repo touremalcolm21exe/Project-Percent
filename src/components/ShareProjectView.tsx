@@ -1,4 +1,5 @@
 import { CheckCircle2, Circle, Flag, Eye, ListChecks } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import ProgressBar from './ProgressBar';
 import { calcEqualWeightCompletion, type SharedProject } from '../lib/shareProject';
 
@@ -16,7 +17,7 @@ export function ShareProjectView({ project }: ShareProjectViewProps) {
   const completionPercent = calcEqualWeightCompletion(tasks);
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-950" data-readonly="true">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-950 flex flex-col" data-readonly="true">
       <header className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 h-16 flex items-center gap-3">
           <img src="/ProgressPercentLogo copy copy.png" alt="" className="w-6 h-6 object-contain flex-shrink-0" />
@@ -36,7 +37,7 @@ export function ShareProjectView({ project }: ShareProjectViewProps) {
       </header>
 
       <main
-        className="max-w-3xl mx-auto px-4 sm:px-6 py-8 space-y-6"
+        className="flex-1 max-w-3xl mx-auto px-4 sm:px-6 py-8 space-y-6 w-full"
         aria-label="Shared project (read-only)"
       >
         <section
@@ -126,6 +127,17 @@ export function ShareProjectView({ project }: ShareProjectViewProps) {
           Last updated {new Date(project.updated_at).toLocaleString()} · View-only link
         </p>
       </main>
+
+      {project.show_branding && (
+        <footer className="py-6 text-center">
+          <Link
+            to="/"
+            className="text-xs text-slate-400 dark:text-slate-500 hover:text-brand-600 dark:hover:text-brand-400 transition-colors"
+          >
+            Made with Project Percent
+          </Link>
+        </footer>
+      )}
     </div>
   );
 }
