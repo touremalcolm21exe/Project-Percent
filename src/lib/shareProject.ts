@@ -26,6 +26,13 @@ export function buildShareUrl(publicProjectId: string): string {
   return `${window.location.origin}/share/${publicProjectId}`;
 }
 
+/** Each task contributes equally: round(complete / total × 100). */
+export function calcEqualWeightCompletion(tasks: SharedMilestone[]): number {
+  if (tasks.length === 0) return 0;
+  const complete = tasks.filter((t) => t.is_complete).length;
+  return Math.round((complete / tasks.length) * 100);
+}
+
 function asString(value: unknown, fallback = ''): string {
   return typeof value === 'string' ? value : fallback;
 }
