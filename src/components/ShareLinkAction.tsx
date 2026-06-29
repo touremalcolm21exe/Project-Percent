@@ -48,42 +48,13 @@ export function ShareLinkAction({
     }
   }
 
-  const label = copied ? 'Copied!' : loading ? 'Sharing…' : 'Share link';
+  const label = copied ? 'Copied!' : loading ? 'Sharing…' : 'Share';
 
-  if (variant === 'button') {
-    return (
-      <div className="relative">
-        <button
-          type="button"
-          onClick={(e) => void handleShareLink(e)}
-          disabled={loading}
-          className="inline-flex items-center gap-1.5 text-xs font-medium text-brand-600 dark:text-brand-400 hover:text-brand-700 dark:hover:text-brand-300 transition-colors disabled:opacity-60"
-          title={`Share link for ${project.name}`}
-        >
-          {loading ? (
-            <Loader2 className="w-3.5 h-3.5 animate-spin" />
-          ) : copied ? (
-            <Check className="w-3.5 h-3.5 text-emerald-500" />
-          ) : (
-            <Share2 className="w-3.5 h-3.5" />
-          )}
-          {label}
-        </button>
-        {(error || manualUrl) && (
-          <div className="absolute left-0 top-full mt-1 z-20 w-72 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 shadow-lg p-2.5 text-xs">
-            {error ? (
-              <p className="text-red-500">{error}</p>
-            ) : manualUrl ? (
-              <>
-                <p className="text-slate-500 dark:text-slate-400 mb-1">Copy this link manually:</p>
-                <input readOnly value={manualUrl} className="w-full px-2 py-1 rounded border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-slate-700 dark:text-slate-300" />
-              </>
-            ) : null}
-          </div>
-        )}
-      </div>
-    );
-  }
+  const buttonClassName =
+    'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-semibold transition-colors disabled:opacity-60 ' +
+    (variant === 'button'
+      ? 'border-brand-200 dark:border-brand-800 bg-brand-50 dark:bg-brand-950 text-brand-700 dark:text-brand-300 hover:bg-brand-100 dark:hover:bg-brand-900 shadow-sm'
+      : 'border-transparent text-brand-600 dark:text-brand-400 hover:text-brand-700 dark:hover:text-brand-300 hover:underline');
 
   return (
     <div className="relative inline-flex flex-col items-start">
@@ -91,8 +62,9 @@ export function ShareLinkAction({
         type="button"
         onClick={(e) => void handleShareLink(e)}
         disabled={loading}
-        className="inline-flex items-center gap-1 text-xs font-medium text-brand-600 dark:text-brand-400 hover:text-brand-700 dark:hover:text-brand-300 hover:underline transition-colors disabled:opacity-60"
+        className={buttonClassName}
         title={`Share link for ${project.name}`}
+        aria-label={`Share ${project.name}`}
       >
         {loading ? (
           <Loader2 className="w-3.5 h-3.5 animate-spin" />

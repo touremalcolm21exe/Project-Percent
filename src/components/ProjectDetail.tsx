@@ -135,14 +135,16 @@ function ShareButton({
     <div className="relative" ref={ref}>
       <button
         onClick={() => setOpen((v) => !v)}
-        className={`flex items-center gap-1.5 p-2 rounded-lg transition-colors ${
+        className={`flex items-center gap-1.5 px-2.5 py-2 rounded-lg text-sm font-medium transition-colors ${
           project.is_public
-            ? 'text-brand-600 bg-brand-50 dark:bg-brand-950 hover:bg-brand-100 dark:hover:bg-brand-900'
-            : 'text-slate-400 hover:text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-950'
+            ? 'text-brand-700 dark:text-brand-300 bg-brand-50 dark:bg-brand-950 border border-brand-200 dark:border-brand-800 hover:bg-brand-100 dark:hover:bg-brand-900'
+            : 'text-slate-600 dark:text-slate-300 border border-gray-200 dark:border-gray-700 hover:text-brand-700 dark:hover:text-brand-300 hover:border-brand-200 dark:hover:border-brand-800 hover:bg-brand-50 dark:hover:bg-brand-950'
         }`}
         title="Share project"
+        aria-label="Share project"
       >
         <Share2 className="w-4 h-4" />
+        <span>Share</span>
       </button>
       {open && (
         <div className="absolute right-0 top-full mt-1.5 w-80 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-lg dark:shadow-gray-950 z-20 overflow-hidden">
@@ -549,6 +551,10 @@ function ProjectDetail({ projectId, onBack, onSettings, isPremium = true }: Proj
               Upgrade
             </button>
           )}
+          <ShareButton
+            project={project}
+            onProjectUpdate={(updates) => setProject((prev) => prev ? { ...prev, ...updates } : prev)}
+          />
           <button
             onClick={onSettings}
             className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 text-sm transition-colors px-2 py-1 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 flex-shrink-0"
@@ -666,10 +672,6 @@ function ProjectDetail({ projectId, onBack, onSettings, isPremium = true }: Proj
                 )}
               </div>
               <div className="flex items-center gap-1 flex-shrink-0">
-                <ShareButton
-                  project={project}
-                  onProjectUpdate={(updates) => setProject((prev) => prev ? { ...prev, ...updates } : prev)}
-                />
                 <DownloadButton project={project} milestones={milestones} />
                 <button
                   onClick={openProjectEdit}

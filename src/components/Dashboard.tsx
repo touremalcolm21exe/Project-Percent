@@ -442,7 +442,7 @@ export default function Dashboard({ onSelectProject, onSettings, onPlanLoaded, u
               >
                 <button
                   onClick={() => onSelectProject(project.id)}
-                  className="w-full p-5 text-left"
+                  className="w-full p-5 pb-3 text-left"
                 >
                   <div className="flex items-start justify-between mb-3">
                     <div className="min-w-0 flex-1 pr-4">
@@ -463,27 +463,30 @@ export default function Dashboard({ onSelectProject, onSettings, onPlanLoaded, u
                   <ProgressBar percent={project.progress_percent} color={project.progress_color} />
                 </button>
                 {/* Actions row */}
-                <div className="px-5 pb-3 flex flex-wrap items-center gap-x-2 gap-y-1">
+                <div className="px-5 pb-4 flex flex-wrap items-center gap-x-3 gap-y-2">
                   <ShareLinkAction
                     project={project}
                     onProjectUpdate={handleProjectShareUpdate}
+                    variant="button"
                   />
-                  <span className="text-slate-300 dark:text-slate-700 text-xs">·</span>
-                  <Download className="w-3.5 h-3.5 text-slate-400 dark:text-slate-600 flex-shrink-0" />
-                  <span className="text-xs text-slate-400 dark:text-slate-600">Download:</span>
-                  <button
-                    onClick={(e) => { e.stopPropagation(); downloadProject(project, 'csv'); }}
-                    className="text-xs font-medium text-brand-600 dark:text-brand-400 hover:text-brand-700 dark:hover:text-brand-300 hover:underline transition-colors"
-                  >
-                    CSV
-                  </button>
-                  <span className="text-slate-300 dark:text-slate-700 text-xs">·</span>
-                  <button
-                    onClick={(e) => { e.stopPropagation(); downloadProject(project, 'json'); }}
-                    className="text-xs font-medium text-brand-600 dark:text-brand-400 hover:text-brand-700 dark:hover:text-brand-300 hover:underline transition-colors"
-                  >
-                    JSON
-                  </button>
+                  <span className="text-slate-300 dark:text-slate-700 text-xs hidden sm:inline">·</span>
+                  <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                    <Download className="w-3.5 h-3.5 text-slate-400 dark:text-slate-600 flex-shrink-0" />
+                    <span className="text-xs text-slate-400 dark:text-slate-600">Download:</span>
+                    <button
+                      onClick={(e) => { e.stopPropagation(); downloadProject(project, 'csv'); }}
+                      className="text-xs font-medium text-brand-600 dark:text-brand-400 hover:text-brand-700 dark:hover:text-brand-300 hover:underline transition-colors"
+                    >
+                      CSV
+                    </button>
+                    <span className="text-slate-300 dark:text-slate-700 text-xs">·</span>
+                    <button
+                      onClick={(e) => { e.stopPropagation(); downloadProject(project, 'json'); }}
+                      className="text-xs font-medium text-brand-600 dark:text-brand-400 hover:text-brand-700 dark:hover:text-brand-300 hover:underline transition-colors"
+                    >
+                      JSON
+                    </button>
+                  </div>
                 </div>
               </div>
             ))}
