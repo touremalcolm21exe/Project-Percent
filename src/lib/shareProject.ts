@@ -1,10 +1,10 @@
 import { supabase } from './supabase';
 
+/** Fields exposed on the public read-only share page. */
 export interface SharedMilestone {
   title: string;
   description: string;
   is_complete: boolean;
-  created_at: string;
 }
 
 export interface SharedProject {
@@ -26,6 +26,58 @@ export function buildShareUrl(publicProjectId: string): string {
   return `${window.location.origin}/share/${publicProjectId}`;
 }
 
+function asString(value: unknown, fallback = ''): string {
+  return typeof value === 'string' ? value : fallback;
+}
+
+function asBool(value: unknown): boolean {
+  return value === true;
+}
+
+function asNumber(value: unknown, fallback = 0): number {
+  return typeof value === 'number' && Number.isFinite(value) ? value : fallback;
+}
+
+/** Strip any unexpected RPC fields before they reach the UI. */
+export function parseSharedProject(payload: unknown): SharedProject | null {
+  if (!payload || typeof payload !== 'object') {
+    return null;
+  }
+
+  const record = payload as Record<string, unknown>;
+  const rawMilestones = Array.isArray(record.milestones) ? record.milestones : [];
+
+  const milestones: SharedMilestone[] = rawMilestones
+    .map((item) => {
+      if (!item || typeof item !== 'object') return null;
+      const m = item as Record<string, unknown>;
+      return {
+        title: asString(m.title),
+        description: asString(m.description),
+        is_complete: asBool(m.is_complete),
+      };
+    })
+    .filter((m): m is SharedMilestone => m !== null);
+
+  const name = asString(record.name);
+  if (!name) {
+    return null;
+  }
+
+  return {
+    name,
+    description: asString(record.description),
+    progress_percent: Math.min(100, Math.max(0, Math.round(asNumber(record.progress_percent)))),
+    progress_color: typeof record.progress_color === 'string' ? record.progress_color : null,
+    updated_at: asString(record.updated_at, new Date().toISOString()),
+    milestones,
+  };
+}
+
+/**
+ * Load a project by its public UUID for read-only display.
+ * Uses the get_shared_project RPC — no direct table access, no auth required.
+ */
 export async function fetchSharedProject(publicProjectId: string): Promise<SharedProject | null> {
   if (!isValidPublicProjectId(publicProjectId)) {
     return null;
@@ -39,7 +91,7 @@ export async function fetchSharedProject(publicProjectId: string): Promise<Share
     return null;
   }
 
-  return data as unknown as SharedProject;
+  return parseSharedProject(data);
 }
 
 export async function setProjectSharing(
