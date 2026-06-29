@@ -4,6 +4,9 @@ import { AlertCircle } from 'lucide-react';
 import { ShareProjectView } from '../components/ShareProjectView';
 import { fetchSharedProject, type SharedProject } from '../lib/shareProject';
 
+/**
+ * Public share page — fetch-only. No create/update/delete calls are made here.
+ */
 export function SharedProjectPage() {
   const { publicProjectId } = useParams<{ publicProjectId: string }>();
   const [project, setProject] = useState<SharedProject | null>(null);
