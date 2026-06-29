@@ -6,6 +6,7 @@ import { downloadProject } from '../lib/downloadProject';
 import ProgressBar from './ProgressBar';
 import { Plus, LogOut, ChevronRight, FolderOpen, X, AlertCircle, Sparkles, Lock, Zap, CheckCircle2, Download, Settings } from 'lucide-react';
 import { startCheckout } from '../lib/checkout';
+import { ShareLinkAction } from './ShareLinkAction';
 
 const FREE_LIMIT = 3;
 
@@ -157,6 +158,10 @@ export default function Dashboard({ onSelectProject, onSettings, onPlanLoaded, u
       loadData();
     }
     setSaving(false);
+  }
+
+  async function handleProjectShareUpdate(projectId: string, updates: Partial<Project>) {
+    setProjects((prev) => prev.map((p) => (p.id === projectId ? { ...p, ...updates } : p)));
   }
 
   async function signOut() {
@@ -438,10 +443,17 @@ export default function Dashboard({ onSelectProject, onSettings, onPlanLoaded, u
                   </div>
                   <ProgressBar percent={project.progress_percent} color={project.progress_color} />
                 </button>
-                {/* Download row */}
-                <div className="px-5 pb-3 flex items-center gap-2">
-                  <Download className="w-3.5 h-3.5 text-slate-400 dark:text-slate-600" />
-                  <span className="text-xs text-slate-400 dark:text-slate-600 mr-1">Download:</span>
+                {/* Actions row */}
+                <div className="px-5 pb-3 flex flex-wrap items-center gap-x-2 gap-y-1">
+                  <ShareLinkAction
+                    project={project}
+                    isPremium={isPremium}
+                    onUpgrade={handleUpgrade}
+                    onProjectUpdate={handleProjectShareUpdate}
+                  />
+                  <span className="text-slate-300 dark:text-slate-700 text-xs">·</span>
+                  <Download className="w-3.5 h-3.5 text-slate-400 dark:text-slate-600 flex-shrink-0" />
+                  <span className="text-xs text-slate-400 dark:text-slate-600">Download:</span>
                   <button
                     onClick={(e) => { e.stopPropagation(); downloadProject(project, 'csv'); }}
                     className="text-xs font-medium text-brand-600 dark:text-brand-400 hover:text-brand-700 dark:hover:text-brand-300 hover:underline transition-colors"

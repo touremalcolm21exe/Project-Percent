@@ -120,3 +120,48 @@ export async function setProjectSharing(
 
   return { publicProjectId: data ?? null, error: null };
 }
+
+export async function copyToClipboard(text: string): Promise<boolean> {
+  try {
+    await navigator.clipboard.writeText(text);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Returns an active share URL for a project, enabling public sharing first if needed.
+ * Requires Premium — callers should gate UI accordingly.
+ */
+export async function getOrCreateShareUrl(project: {
+  id: string;
+  is_public: boolean;
+  public_id: string | null;
+}): Promise<{
+  url: string | null;
+  publicProjectId: string | null;
+  enabledSharing: boolean;
+  error: string | null;
+}> {
+  if (project.is_public && project.public_id) {
+    return {
+      url: buildShareUrl(project.public_id),
+      publicProjectId: project.public_id,
+      enabledSharing: false,
+      error: null,
+    };
+  }
+
+  const { publicProjectId, error } = await setProjectSharing(project.id, true);
+  if (error || !publicProjectId) {
+    return { url: null, publicProjectId: null, enabledSharing: false, error: error ?? 'Could not create share link.' };
+  }
+
+  return {
+    url: buildShareUrl(publicProjectId),
+    publicProjectId,
+    enabledSharing: true,
+    error: null,
+  };
+}
