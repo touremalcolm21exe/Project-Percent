@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { supabase } from '../lib/supabase';
 import { auditLog } from '../lib/audit';
+import { buildShareUrl, setProjectSharing } from '../lib/shareProject';
 import { downloadProject } from '../lib/downloadProject';
 import type { Project, Milestone } from '../lib/database.types';
 import {
@@ -28,6 +29,8 @@ import {
   Download,
   Settings,
   Sparkles,
+  Share2,
+  Copy,
 } from 'lucide-react';
 import { startCheckout } from '../lib/checkout';
 
@@ -47,6 +50,161 @@ interface ProjectDetailProps {
   onBack: () => void;
   onSettings: () => void;
   isPremium?: boolean;
+}
+
+function ShareButton({
+  project,
+  onProjectUpdate,
+}: {
+  project: Project;
+  onProjectUpdate: (updates: Partial<Project>) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [copied, setCopied] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    function close(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    }
+    document.addEventListener('mousedown', close);
+    return () => document.removeEventListener('mousedown', close);
+  }, [open]);
+
+  useEffect(() => {
+    if (!copied) return;
+    const t = setTimeout(() => setCopied(false), 2000);
+    return () => clearTimeout(t);
+  }, [copied]);
+
+  const shareUrl = project.public_id ? buildShareUrl(project.public_id) : '';
+
+  async function handleToggle(enabled: boolean) {
+    setLoading(true);
+    setError('');
+    const { publicProjectId, error: shareError } = await setProjectSharing(project.id, enabled);
+    setLoading(false);
+
+    if (shareError) {
+      setError(shareError);
+      return;
+    }
+
+    onProjectUpdate({
+      is_public: enabled,
+      public_id: enabled ? publicProjectId ?? project.public_id : project.public_id,
+    });
+  }
+
+  async function handleCopyLink() {
+    if (project.is_public && shareUrl) {
+      await handleCopy();
+      return;
+    }
+    setLoading(true);
+    setError('');
+    const { publicProjectId, error: shareError } = await setProjectSharing(project.id, true);
+    setLoading(false);
+    if (shareError || !publicProjectId) {
+      setError(shareError ?? 'Could not create share link.');
+      return;
+    }
+    onProjectUpdate({ is_public: true, public_id: publicProjectId });
+    try {
+      await navigator.clipboard.writeText(buildShareUrl(publicProjectId));
+      setCopied(true);
+    } catch {
+      setError('Could not copy link. Please copy it manually.');
+    }
+  }
+
+  async function handleCopy() {
+    if (!shareUrl) return;
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      setCopied(true);
+    } catch {
+      setError('Could not copy link. Please copy it manually.');
+    }
+  }
+
+  return (
+    <div className="relative" ref={ref}>
+      <button
+        onClick={() => setOpen((v) => !v)}
+        className={`flex items-center gap-1.5 px-2.5 py-2 rounded-lg text-sm font-medium transition-colors ${
+          project.is_public
+            ? 'text-brand-700 dark:text-brand-300 bg-brand-50 dark:bg-brand-950 border border-brand-200 dark:border-brand-800 hover:bg-brand-100 dark:hover:bg-brand-900'
+            : 'text-slate-600 dark:text-slate-300 border border-gray-200 dark:border-gray-700 hover:text-brand-700 dark:hover:text-brand-300 hover:border-brand-200 dark:hover:border-brand-800 hover:bg-brand-50 dark:hover:bg-brand-950'
+        }`}
+        title="Share project"
+        aria-label="Share project"
+      >
+        <Share2 className="w-4 h-4" />
+        <span>Share</span>
+      </button>
+      {open && (
+        <div className="absolute right-0 top-full mt-1.5 w-80 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-lg dark:shadow-gray-950 z-20 overflow-hidden">
+          <div className="px-4 py-3 border-b border-gray-100 dark:border-gray-700">
+            <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">Public share link</p>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+              Anyone with the link can view this project&apos;s progress.
+            </p>
+          </div>
+
+          <div className="px-4 py-3 space-y-3">
+            <label className="flex items-center justify-between gap-3">
+              <span className="text-sm text-slate-700 dark:text-slate-300">Enable public link</span>
+              <button
+                type="button"
+                role="switch"
+                aria-checked={project.is_public}
+                disabled={loading}
+                onClick={() => void handleToggle(!project.is_public)}
+                className={`relative inline-flex h-6 w-11 flex-shrink-0 rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-brand-400 focus:ring-offset-2 disabled:opacity-60 ${
+                  project.is_public ? 'bg-brand-500' : 'bg-gray-200 dark:bg-gray-700'
+                }`}
+              >
+                <span
+                  className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ${
+                    project.is_public ? 'translate-x-5' : 'translate-x-0'
+                  }`}
+                />
+              </button>
+            </label>
+
+            {(project.is_public && shareUrl) || !project.is_public ? (
+              <div className="space-y-2">
+                <p className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wide">Share URL</p>
+                <div className="flex items-center gap-2">
+                  <input
+                    readOnly
+                    value={shareUrl || 'Enable public link to generate URL'}
+                    className="flex-1 min-w-0 px-2.5 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 text-xs text-slate-700 dark:text-slate-300"
+                  />
+                  <button
+                    onClick={() => void (project.is_public ? handleCopy() : handleCopyLink())}
+                    disabled={loading}
+                    className="flex items-center gap-1 px-2.5 py-2 rounded-lg border border-gray-200 dark:border-gray-700 text-slate-600 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-gray-900 text-xs font-medium transition-colors disabled:opacity-60"
+                  >
+                    {copied ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5" />}
+                    {copied ? 'Copied' : 'Copy'}
+                  </button>
+                </div>
+              </div>
+            ) : null}
+
+            {error && (
+              <p className="text-xs text-red-500">{error}</p>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
 }
 
 function DownloadButton({ project, milestones }: { project: Project; milestones: Milestone[] }) {
@@ -393,6 +551,10 @@ function ProjectDetail({ projectId, onBack, onSettings, isPremium = true }: Proj
               Upgrade
             </button>
           )}
+          <ShareButton
+            project={project}
+            onProjectUpdate={(updates) => setProject((prev) => prev ? { ...prev, ...updates } : prev)}
+          />
           <button
             onClick={onSettings}
             className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 text-sm transition-colors px-2 py-1 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 flex-shrink-0"

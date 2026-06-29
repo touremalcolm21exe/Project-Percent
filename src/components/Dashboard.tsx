@@ -5,9 +5,9 @@ import { validateProjectName, validateProjectDescription, LIMITS } from '../lib/
 import { downloadProject } from '../lib/downloadProject';
 import ProgressBar from './ProgressBar';
 import { Plus, LogOut, ChevronRight, FolderOpen, X, AlertCircle, Sparkles, Lock, Zap, CheckCircle2, Download, Settings } from 'lucide-react';
+import { ShareLinkAction } from './ShareLinkAction';
 import { startCheckout } from '../lib/checkout';
-
-const FREE_LIMIT = 3;
+import { FREE_PROJECT_LIMIT, PAID_PROJECT_LIMIT, isPaidPlan, projectLimitReached } from '../lib/planLimits';
 
 interface DashboardProps {
   onSelectProject: (id: string) => void;
@@ -102,9 +102,8 @@ export default function Dashboard({ onSelectProject, onSettings, onPlanLoaded, u
   }
 
   const plan = profile?.plan ?? 'free';
-  const isPremium = plan === 'premium';
-  const lifetimeCount = profile?.projects_created_count ?? 0;
-  const atLimit = !isPremium && lifetimeCount >= FREE_LIMIT;
+  const isPremium = isPaidPlan(plan);
+  const atLimit = projectLimitReached(plan, projects.length);
 
   async function handleUpgrade() {
     setCheckoutLoading(true);
@@ -157,6 +156,10 @@ export default function Dashboard({ onSelectProject, onSettings, onPlanLoaded, u
       loadData();
     }
     setSaving(false);
+  }
+
+  async function handleProjectShareUpdate(projectId: string, updates: Partial<Project>) {
+    setProjects((prev) => prev.map((p) => (p.id === projectId ? { ...p, ...updates } : p)));
   }
 
   async function signOut() {
@@ -232,7 +235,7 @@ export default function Dashboard({ onSelectProject, onSettings, onPlanLoaded, u
             <CheckCircle2 className="w-5 h-5 text-emerald-500 flex-shrink-0" />
             <div>
               <p className="text-emerald-800 dark:text-emerald-300 text-sm font-semibold">Welcome to Premium!</p>
-              <p className="text-emerald-700 dark:text-emerald-400 text-sm">You now have up to 500 projects. Enjoy!</p>
+              <p className="text-emerald-700 dark:text-emerald-400 text-sm">You now have up to {PAID_PROJECT_LIMIT} projects. Enjoy!</p>
             </div>
           </div>
         )}
@@ -265,20 +268,31 @@ export default function Dashboard({ onSelectProject, onSettings, onPlanLoaded, u
                 </button>
                 {showLimitTooltip && (
                   <div className="absolute right-0 top-full mt-2 w-64 bg-slate-900 dark:bg-gray-800 text-white rounded-xl px-4 py-3 shadow-lg z-20">
-                    <p className="font-semibold text-sm mb-1">Free plan limit reached</p>
-                    <p className="text-slate-300 text-xs leading-relaxed mb-3">Upgrade to Premium for up to 500 projects.</p>
-                    <button
-                      onClick={() => { setShowLimitTooltip(false); handleUpgrade(); }}
-                      disabled={checkoutLoading}
-                      className="w-full flex items-center justify-center gap-1.5 bg-brand-gradient text-white text-xs font-semibold px-3 py-2 rounded-lg transition-opacity hover:opacity-90 disabled:opacity-60"
-                    >
-                      {checkoutLoading ? (
-                        <span className="w-3 h-3 border-2 border-white/40 border-t-white rounded-full animate-spin" />
-                      ) : (
-                        <Sparkles className="w-3 h-3" />
-                      )}
-                      Upgrade to Premium
-                    </button>
+                    {isPremium ? (
+                      <>
+                        <p className="font-semibold text-sm mb-1">Project limit reached</p>
+                        <p className="text-slate-300 text-xs leading-relaxed">
+                          Paid plans may have up to {PAID_PROJECT_LIMIT} active projects. Delete a project to create a new one.
+                        </p>
+                      </>
+                    ) : (
+                      <>
+                        <p className="font-semibold text-sm mb-1">Free plan limit reached</p>
+                        <p className="text-slate-300 text-xs leading-relaxed mb-3">Upgrade to Monthly or Founder Deal for up to {PAID_PROJECT_LIMIT} projects.</p>
+                        <button
+                          onClick={() => { setShowLimitTooltip(false); handleUpgrade(); }}
+                          disabled={checkoutLoading}
+                          className="w-full flex items-center justify-center gap-1.5 bg-brand-gradient text-white text-xs font-semibold px-3 py-2 rounded-lg transition-opacity hover:opacity-90 disabled:opacity-60"
+                        >
+                          {checkoutLoading ? (
+                            <span className="w-3 h-3 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+                          ) : (
+                            <Sparkles className="w-3 h-3" />
+                          )}
+                          Upgrade to Premium
+                        </button>
+                      </>
+                    )}
                     <div className="absolute -top-1.5 right-5 w-3 h-3 bg-slate-900 dark:bg-gray-800 rotate-45 rounded-sm" />
                   </div>
                 )}
@@ -301,7 +315,7 @@ export default function Dashboard({ onSelectProject, onSettings, onPlanLoaded, u
             {isPremium ? (
               <span className="inline-flex items-center gap-1.5 bg-amber-50 dark:bg-amber-950 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800 text-xs font-semibold px-2.5 py-1 rounded-full">
                 <Sparkles className="w-3 h-3" />
-                Premium · Up to 500 projects
+                Premium · Up to {PAID_PROJECT_LIMIT} projects
               </span>
             ) : (
               <button
@@ -329,7 +343,7 @@ export default function Dashboard({ onSelectProject, onSettings, onPlanLoaded, u
               </div>
               <div>
                 <p className="text-white font-semibold text-sm">Upgrade to Premium</p>
-                <p className="text-blue-100 text-sm mt-0.5">Up to 500 projects for just <span className="font-semibold text-white">$9.99/month</span>. Cancel anytime.</p>
+                <p className="text-blue-100 text-sm mt-0.5">Up to {PAID_PROJECT_LIMIT} projects for just <span className="font-semibold text-white">$9.99/month</span>. Cancel anytime.</p>
               </div>
             </div>
             <button
@@ -366,21 +380,31 @@ export default function Dashboard({ onSelectProject, onSettings, onPlanLoaded, u
             <div className="flex items-start gap-3 flex-1 min-w-0">
               <Lock className="w-4 h-4 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
               <p className="text-amber-800 dark:text-amber-300 text-sm">
-                <span className="font-semibold">Free plan limit reached.</span> You've used all {FREE_LIMIT} free projects.
+                {isPremium ? (
+                  <>
+                    <span className="font-semibold">Project limit reached.</span> Paid plans may have up to {PAID_PROJECT_LIMIT} active projects. Delete a project to create a new one.
+                  </>
+                ) : (
+                  <>
+                    <span className="font-semibold">Free plan limit reached.</span> You can have {FREE_PROJECT_LIMIT} project on the free plan, with a shareable link included.
+                  </>
+                )}
               </p>
             </div>
-            <button
-              onClick={handleUpgrade}
-              disabled={checkoutLoading}
-              className="flex-shrink-0 flex items-center justify-center gap-1.5 bg-brand-gradient text-white text-xs font-semibold px-3.5 py-2 rounded-lg transition-opacity hover:opacity-90 disabled:opacity-60 shadow-sm"
-            >
-              {checkoutLoading ? (
-                <span className="w-3 h-3 border-2 border-white/40 border-t-white rounded-full animate-spin" />
-              ) : (
-                <Sparkles className="w-3 h-3" />
-              )}
-              Upgrade to Premium
-            </button>
+            {!isPremium && (
+              <button
+                onClick={handleUpgrade}
+                disabled={checkoutLoading}
+                className="flex-shrink-0 flex items-center justify-center gap-1.5 bg-brand-gradient text-white text-xs font-semibold px-3.5 py-2 rounded-lg transition-opacity hover:opacity-90 disabled:opacity-60 shadow-sm"
+              >
+                {checkoutLoading ? (
+                  <span className="w-3 h-3 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+                ) : (
+                  <Sparkles className="w-3 h-3" />
+                )}
+                Upgrade to Premium
+              </button>
+            )}
           </div>
         )}
 
@@ -418,7 +442,7 @@ export default function Dashboard({ onSelectProject, onSettings, onPlanLoaded, u
               >
                 <button
                   onClick={() => onSelectProject(project.id)}
-                  className="w-full p-5 text-left"
+                  className="w-full p-5 pb-3 text-left"
                 >
                   <div className="flex items-start justify-between mb-3">
                     <div className="min-w-0 flex-1 pr-4">
@@ -438,23 +462,31 @@ export default function Dashboard({ onSelectProject, onSettings, onPlanLoaded, u
                   </div>
                   <ProgressBar percent={project.progress_percent} color={project.progress_color} />
                 </button>
-                {/* Download row */}
-                <div className="px-5 pb-3 flex items-center gap-2">
-                  <Download className="w-3.5 h-3.5 text-slate-400 dark:text-slate-600" />
-                  <span className="text-xs text-slate-400 dark:text-slate-600 mr-1">Download:</span>
-                  <button
-                    onClick={(e) => { e.stopPropagation(); downloadProject(project, 'csv'); }}
-                    className="text-xs font-medium text-brand-600 dark:text-brand-400 hover:text-brand-700 dark:hover:text-brand-300 hover:underline transition-colors"
-                  >
-                    CSV
-                  </button>
-                  <span className="text-slate-300 dark:text-slate-700 text-xs">·</span>
-                  <button
-                    onClick={(e) => { e.stopPropagation(); downloadProject(project, 'json'); }}
-                    className="text-xs font-medium text-brand-600 dark:text-brand-400 hover:text-brand-700 dark:hover:text-brand-300 hover:underline transition-colors"
-                  >
-                    JSON
-                  </button>
+                {/* Actions row */}
+                <div className="px-5 pb-4 flex flex-wrap items-center gap-x-3 gap-y-2">
+                  <ShareLinkAction
+                    project={project}
+                    onProjectUpdate={handleProjectShareUpdate}
+                    variant="button"
+                  />
+                  <span className="text-slate-300 dark:text-slate-700 text-xs hidden sm:inline">·</span>
+                  <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                    <Download className="w-3.5 h-3.5 text-slate-400 dark:text-slate-600 flex-shrink-0" />
+                    <span className="text-xs text-slate-400 dark:text-slate-600">Download:</span>
+                    <button
+                      onClick={(e) => { e.stopPropagation(); downloadProject(project, 'csv'); }}
+                      className="text-xs font-medium text-brand-600 dark:text-brand-400 hover:text-brand-700 dark:hover:text-brand-300 hover:underline transition-colors"
+                    >
+                      CSV
+                    </button>
+                    <span className="text-slate-300 dark:text-slate-700 text-xs">·</span>
+                    <button
+                      onClick={(e) => { e.stopPropagation(); downloadProject(project, 'json'); }}
+                      className="text-xs font-medium text-brand-600 dark:text-brand-400 hover:text-brand-700 dark:hover:text-brand-300 hover:underline transition-colors"
+                    >
+                      JSON
+                    </button>
+                  </div>
                 </div>
               </div>
             ))}

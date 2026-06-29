@@ -7,11 +7,12 @@ import AuthPage, { type AuthView, UnconfirmedGate } from './components/AuthPage'
 import Dashboard from './components/Dashboard';
 import ProjectDetail from './components/ProjectDetail';
 import SettingsPage from './components/SettingsPage';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import { LoginPage } from './pages/LoginPage';
 import { SignupPage } from './pages/SignupPage';
 import { PricingPage } from './pages/PricingPage';
 import { SuccessPage } from './pages/SuccessPage';
+import { SharedProjectPage } from './pages/SharedProjectPage';
 import { useAuth } from './hooks/useAuth';
 
 type AppView =
@@ -152,6 +153,15 @@ function isEmailConfirmed(user: { email_confirmed_at?: string | null } | null): 
 }
 
 export default function App() {
+  return (
+    <Routes>
+      <Route path="/share/:publicProjectId" element={<SharedProjectPage />} />
+      <Route path="/*" element={<AppShell />} />
+    </Routes>
+  );
+}
+
+function AppShell() {
   const [session, setSession] = useState<Session | null>(null);
   const [authLoading, setAuthLoading] = useState(true);
   const [view, setView] = useState<AppView>(detectInitialView);
@@ -325,26 +335,24 @@ export default function App() {
   }
 
   return (
-    <Router>
-      <Routes>
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/signup" element={<SignupPage />} />
-        <Route path="/pricing" element={<PricingPage />} />
-        <Route path="/success" element={<SuccessPage />} />
-        <Route
-          path="/"
-          element={
-            <ProtectedRoute>
-              <Dashboard
-                upgradeSuccess={view.page === 'dashboard' ? view.upgradeSuccess : undefined}
-                onSelectProject={(id: string) => setView({ page: 'project', id })}
-                onSettings={() => setView({ page: 'settings' })}
-                onPlanLoaded={(premium) => setIsPremium(premium)}
-              />
-            </ProtectedRoute>
-          }
-        />
-      </Routes>
-    </Router>
+    <Routes>
+      <Route path="/login" element={<LoginPage />} />
+      <Route path="/signup" element={<SignupPage />} />
+      <Route path="/pricing" element={<PricingPage />} />
+      <Route path="/success" element={<SuccessPage />} />
+      <Route
+        path="/"
+        element={
+          <ProtectedRoute>
+            <Dashboard
+              upgradeSuccess={view.page === 'dashboard' ? view.upgradeSuccess : undefined}
+              onSelectProject={(id: string) => setView({ page: 'project', id })}
+              onSettings={() => setView({ page: 'settings' })}
+              onPlanLoaded={(premium) => setIsPremium(premium)}
+            />
+          </ProtectedRoute>
+        }
+      />
+    </Routes>
   );
 }

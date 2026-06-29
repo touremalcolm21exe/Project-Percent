@@ -1,3 +1,11 @@
+export type Json =
+  | string
+  | number
+  | boolean
+  | null
+  | { [key: string]: Json | undefined }
+  | Json[];
+
 export interface Database {
   public: {
     Tables: {
@@ -81,6 +89,8 @@ export interface Database {
           description: string;
           progress_percent: number;
           progress_color: string | null;
+          is_public: boolean;
+          public_id: string | null;
           created_at: string;
           updated_at: string;
           deleted_at: string | null;
@@ -92,6 +102,8 @@ export interface Database {
           description?: string;
           progress_percent?: number;
           progress_color?: string | null;
+          is_public?: boolean;
+          public_id?: string | null;
           created_at?: string;
           updated_at?: string;
           deleted_at?: string | null;
@@ -103,6 +115,8 @@ export interface Database {
           description?: string;
           progress_percent?: number;
           progress_color?: string | null;
+          is_public?: boolean;
+          public_id?: string | null;
           created_at?: string;
           updated_at?: string;
           deleted_at?: string | null;
@@ -141,6 +155,27 @@ export interface Database {
         };
       };
     };
+    Views: Record<string, never>;
+    Functions: {
+      get_shared_project: {
+        Args: { p_public_id: string };
+        Returns: Json | null;
+      };
+      set_project_sharing: {
+        Args: { p_project_id: string; p_is_public: boolean };
+        Returns: string | null;
+      };
+      soft_delete_project: {
+        Args: { p_project_id: string };
+        Returns: boolean;
+      };
+      soft_delete_milestone: {
+        Args: { p_milestone_id: string };
+        Returns: boolean;
+      };
+    };
+    Enums: Record<string, never>;
+    CompositeTypes: Record<string, never>;
   };
 }
 
