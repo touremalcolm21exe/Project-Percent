@@ -111,11 +111,7 @@ export async function setProjectSharing(
   });
 
   if (error) {
-    const message = error.message || 'Could not update sharing settings.';
-    if (message.includes('Premium plan required')) {
-      return { publicProjectId: null, error: 'Public sharing is a Premium feature.' };
-    }
-    return { publicProjectId: null, error: message };
+    return { publicProjectId: null, error: error.message || 'Could not update sharing settings.' };
   }
 
   return { publicProjectId: data ?? null, error: null };
@@ -132,7 +128,6 @@ export async function copyToClipboard(text: string): Promise<boolean> {
 
 /**
  * Returns an active share URL for a project, enabling public sharing first if needed.
- * Requires Premium — callers should gate UI accordingly.
  */
 export async function getOrCreateShareUrl(project: {
   id: string;

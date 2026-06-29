@@ -5,8 +5,6 @@ import type { Project } from '../lib/database.types';
 
 interface ShareLinkActionProps {
   project: Pick<Project, 'id' | 'is_public' | 'public_id' | 'name'>;
-  isPremium: boolean;
-  onUpgrade: () => void;
   onProjectUpdate?: (projectId: string, updates: Partial<Project>) => void;
   /** Compact text link style for dashboard rows */
   variant?: 'button' | 'link';
@@ -14,8 +12,6 @@ interface ShareLinkActionProps {
 
 export function ShareLinkAction({
   project,
-  isPremium,
-  onUpgrade,
   onProjectUpdate,
   variant = 'link',
 }: ShareLinkActionProps) {
@@ -29,11 +25,6 @@ export function ShareLinkAction({
     e.preventDefault();
     setError('');
     setManualUrl(null);
-
-    if (!isPremium) {
-      onUpgrade();
-      return;
-    }
 
     setLoading(true);
     const { url, publicProjectId, enabledSharing, error: shareError } = await getOrCreateShareUrl(project);

@@ -31,7 +31,6 @@ import {
   Sparkles,
   Share2,
   Copy,
-  Lock,
 } from 'lucide-react';
 import { startCheckout } from '../lib/checkout';
 
@@ -55,16 +54,10 @@ interface ProjectDetailProps {
 
 function ShareButton({
   project,
-  isPremium,
   onProjectUpdate,
-  onUpgrade,
-  upgradeLoading,
 }: {
   project: Project;
-  isPremium: boolean;
   onProjectUpdate: (updates: Partial<Project>) => void;
-  onUpgrade: () => void;
-  upgradeLoading: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -90,11 +83,6 @@ function ShareButton({
   const shareUrl = project.public_id ? buildShareUrl(project.public_id) : '';
 
   async function handleToggle(enabled: boolean) {
-    if (!isPremium) {
-      onUpgrade();
-      return;
-    }
-
     setLoading(true);
     setError('');
     const { publicProjectId, error: shareError } = await setProjectSharing(project.id, enabled);
@@ -109,6 +97,28 @@ function ShareButton({
       is_public: enabled,
       public_id: enabled ? publicProjectId ?? project.public_id : project.public_id,
     });
+  }
+
+  async function handleCopyLink() {
+    if (project.is_public && shareUrl) {
+      await handleCopy();
+      return;
+    }
+    setLoading(true);
+    setError('');
+    const { publicProjectId, error: shareError } = await setProjectSharing(project.id, true);
+    setLoading(false);
+    if (shareError || !publicProjectId) {
+      setError(shareError ?? 'Could not create share link.');
+      return;
+    }
+    onProjectUpdate({ is_public: true, public_id: publicProjectId });
+    try {
+      await navigator.clipboard.writeText(buildShareUrl(publicProjectId));
+      setCopied(true);
+    } catch {
+      setError('Could not copy link. Please copy it manually.');
+    }
   }
 
   async function handleCopy() {
@@ -144,73 +154,46 @@ function ShareButton({
           </div>
 
           <div className="px-4 py-3 space-y-3">
-            {!isPremium ? (
-              <div className="rounded-lg bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900 px-3 py-2.5">
-                <div className="flex items-start gap-2">
-                  <Lock className="w-4 h-4 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
-                  <div>
-                    <p className="text-sm font-medium text-amber-900 dark:text-amber-100">Premium feature</p>
-                    <p className="text-xs text-amber-700 dark:text-amber-300 mt-0.5">
-                      Upgrade to share a public read-only link to this project.
-                    </p>
-                    <button
-                      onClick={onUpgrade}
-                      disabled={upgradeLoading}
-                      className="mt-2 inline-flex items-center gap-1.5 bg-brand-gradient text-white text-xs font-semibold px-3 py-1.5 rounded-full transition-opacity hover:opacity-90 disabled:opacity-60"
-                    >
-                      {upgradeLoading ? (
-                        <span className="w-3 h-3 border-2 border-white/40 border-t-white rounded-full animate-spin" />
-                      ) : (
-                        <Sparkles className="w-3 h-3" />
-                      )}
-                      Upgrade
-                    </button>
-                  </div>
+            <label className="flex items-center justify-between gap-3">
+              <span className="text-sm text-slate-700 dark:text-slate-300">Enable public link</span>
+              <button
+                type="button"
+                role="switch"
+                aria-checked={project.is_public}
+                disabled={loading}
+                onClick={() => void handleToggle(!project.is_public)}
+                className={`relative inline-flex h-6 w-11 flex-shrink-0 rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-brand-400 focus:ring-offset-2 disabled:opacity-60 ${
+                  project.is_public ? 'bg-brand-500' : 'bg-gray-200 dark:bg-gray-700'
+                }`}
+              >
+                <span
+                  className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ${
+                    project.is_public ? 'translate-x-5' : 'translate-x-0'
+                  }`}
+                />
+              </button>
+            </label>
+
+            {(project.is_public && shareUrl) || !project.is_public ? (
+              <div className="space-y-2">
+                <p className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wide">Share URL</p>
+                <div className="flex items-center gap-2">
+                  <input
+                    readOnly
+                    value={shareUrl || 'Enable public link to generate URL'}
+                    className="flex-1 min-w-0 px-2.5 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 text-xs text-slate-700 dark:text-slate-300"
+                  />
+                  <button
+                    onClick={() => void (project.is_public ? handleCopy() : handleCopyLink())}
+                    disabled={loading}
+                    className="flex items-center gap-1 px-2.5 py-2 rounded-lg border border-gray-200 dark:border-gray-700 text-slate-600 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-gray-900 text-xs font-medium transition-colors disabled:opacity-60"
+                  >
+                    {copied ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5" />}
+                    {copied ? 'Copied' : 'Copy'}
+                  </button>
                 </div>
               </div>
-            ) : (
-              <>
-                <label className="flex items-center justify-between gap-3">
-                  <span className="text-sm text-slate-700 dark:text-slate-300">Enable public link</span>
-                  <button
-                    type="button"
-                    role="switch"
-                    aria-checked={project.is_public}
-                    disabled={loading}
-                    onClick={() => void handleToggle(!project.is_public)}
-                    className={`relative inline-flex h-6 w-11 flex-shrink-0 rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-brand-400 focus:ring-offset-2 disabled:opacity-60 ${
-                      project.is_public ? 'bg-brand-500' : 'bg-gray-200 dark:bg-gray-700'
-                    }`}
-                  >
-                    <span
-                      className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ${
-                        project.is_public ? 'translate-x-5' : 'translate-x-0'
-                      }`}
-                    />
-                  </button>
-                </label>
-
-                {project.is_public && shareUrl && (
-                  <div className="space-y-2">
-                    <p className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wide">Share URL</p>
-                    <div className="flex items-center gap-2">
-                      <input
-                        readOnly
-                        value={shareUrl}
-                        className="flex-1 min-w-0 px-2.5 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 text-xs text-slate-700 dark:text-slate-300"
-                      />
-                      <button
-                        onClick={() => void handleCopy()}
-                        className="flex items-center gap-1 px-2.5 py-2 rounded-lg border border-gray-200 dark:border-gray-700 text-slate-600 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-gray-900 text-xs font-medium transition-colors"
-                      >
-                        {copied ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5" />}
-                        {copied ? 'Copied' : 'Copy'}
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </>
-            )}
+            ) : null}
 
             {error && (
               <p className="text-xs text-red-500">{error}</p>
@@ -685,10 +668,7 @@ function ProjectDetail({ projectId, onBack, onSettings, isPremium = true }: Proj
               <div className="flex items-center gap-1 flex-shrink-0">
                 <ShareButton
                   project={project}
-                  isPremium={!!isPremium}
                   onProjectUpdate={(updates) => setProject((prev) => prev ? { ...prev, ...updates } : prev)}
-                  onUpgrade={handleUpgrade}
-                  upgradeLoading={upgradeLoading}
                 />
                 <DownloadButton project={project} milestones={milestones} />
                 <button

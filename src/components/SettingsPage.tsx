@@ -475,10 +475,10 @@ function SubscriptionSection() {
                 )}
                 <div>
                   <p className="font-semibold text-slate-900 dark:text-slate-100 text-sm">
-                    {plan === 'premium' ? 'Premium' : 'Free'}
+                    {plan === 'premium' ? 'Paid plan' : 'Free'}
                   </p>
                   <p className="text-xs text-slate-500 dark:text-slate-400">
-                    {plan === 'premium' ? 'Up to 500 projects · Active subscription' : 'Up to 3 projects'}
+                    {plan === 'premium' ? 'Unlimited projects · Shareable links on every project' : '1 project · Shareable link included'}
                   </p>
                 </div>
               </div>
@@ -531,7 +531,7 @@ function SubscriptionSection() {
                       <div>
                         <p className="text-sm font-semibold text-red-800 dark:text-red-300">Cancel your subscription?</p>
                         <p className="text-sm text-red-700 dark:text-red-400 mt-0.5 leading-relaxed">
-                          You'll keep Premium access until the end of your current billing period. After that, your account will revert to the free plan (3 project limit).
+                          You'll keep paid access until the end of your current billing period. After that, your account will revert to the free plan (1 project limit).
                         </p>
                       </div>
                     </div>
@@ -566,8 +566,8 @@ function SubscriptionSection() {
                       <Sparkles className="w-4 h-4 text-white" />
                     </div>
                     <div>
-                      <p className="text-white font-semibold text-sm">Upgrade to Premium</p>
-                      <p className="text-blue-100 text-xs mt-0.5">Up to 500 projects for just <span className="font-semibold text-white">$9.99/month</span>. Cancel anytime.</p>
+                      <p className="text-white font-semibold text-sm">Upgrade to Monthly</p>
+                      <p className="text-blue-100 text-xs mt-0.5">Unlimited projects for just <span className="font-semibold text-white">$9.99/month</span>. Cancel anytime.</p>
                     </div>
                   </div>
                   <button
@@ -578,15 +578,15 @@ function SubscriptionSection() {
                     {upgradeLoading ? (
                       <><Loader2 className="w-4 h-4 animate-spin" /> Redirecting...</>
                     ) : (
-                      <><Sparkles className="w-4 h-4" /> Upgrade to Premium</>
+                      <><Sparkles className="w-4 h-4" /> Upgrade to Monthly</>
                     )}
                   </button>
                 </div>
                 <ul className="space-y-1.5 px-1">
                   {[
-                    'Up to 500 projects',
+                    'Unlimited projects',
+                    'Shareable link on every project',
                     'Custom progress bar colors',
-                    'Public shareable project links',
                   ].map((f) => (
                     <li key={f} className="flex items-center gap-2 text-xs text-slate-600 dark:text-slate-400">
                       <CheckCircle2 className="w-3.5 h-3.5 text-brand-400 flex-shrink-0" />

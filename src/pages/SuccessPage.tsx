@@ -46,7 +46,7 @@ export function SuccessPage() {
               <h3 className="text-lg font-medium text-gray-900">What's Next?</h3>
               <p className="mt-2 text-sm text-gray-500">
                 {isPremium
-                  ? 'You now have access to all premium features. Start creating up to 500 projects!'
+                  ? 'You now have unlimited projects, each with its own shareable link!'
                   : 'We are syncing your account with Stripe. This usually takes a few seconds.'}
               </p>
             </div>

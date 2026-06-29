@@ -5,10 +5,9 @@ import { validateProjectName, validateProjectDescription, LIMITS } from '../lib/
 import { downloadProject } from '../lib/downloadProject';
 import ProgressBar from './ProgressBar';
 import { Plus, LogOut, ChevronRight, FolderOpen, X, AlertCircle, Sparkles, Lock, Zap, CheckCircle2, Download, Settings } from 'lucide-react';
-import { startCheckout } from '../lib/checkout';
 import { ShareLinkAction } from './ShareLinkAction';
-
-const FREE_LIMIT = 3;
+import { startCheckout } from '../lib/checkout';
+import { FREE_PROJECT_LIMIT, isPaidPlan, freeProjectLimitReached } from '../lib/planLimits';
 
 interface DashboardProps {
   onSelectProject: (id: string) => void;
@@ -103,9 +102,8 @@ export default function Dashboard({ onSelectProject, onSettings, onPlanLoaded, u
   }
 
   const plan = profile?.plan ?? 'free';
-  const isPremium = plan === 'premium';
-  const lifetimeCount = profile?.projects_created_count ?? 0;
-  const atLimit = !isPremium && lifetimeCount >= FREE_LIMIT;
+  const isPremium = isPaidPlan(plan);
+  const atLimit = !isPremium && freeProjectLimitReached(projects.length);
 
   async function handleUpgrade() {
     setCheckoutLoading(true);
@@ -237,7 +235,7 @@ export default function Dashboard({ onSelectProject, onSettings, onPlanLoaded, u
             <CheckCircle2 className="w-5 h-5 text-emerald-500 flex-shrink-0" />
             <div>
               <p className="text-emerald-800 dark:text-emerald-300 text-sm font-semibold">Welcome to Premium!</p>
-              <p className="text-emerald-700 dark:text-emerald-400 text-sm">You now have up to 500 projects. Enjoy!</p>
+              <p className="text-emerald-700 dark:text-emerald-400 text-sm">You now have unlimited projects. Enjoy!</p>
             </div>
           </div>
         )}
@@ -271,7 +269,7 @@ export default function Dashboard({ onSelectProject, onSettings, onPlanLoaded, u
                 {showLimitTooltip && (
                   <div className="absolute right-0 top-full mt-2 w-64 bg-slate-900 dark:bg-gray-800 text-white rounded-xl px-4 py-3 shadow-lg z-20">
                     <p className="font-semibold text-sm mb-1">Free plan limit reached</p>
-                    <p className="text-slate-300 text-xs leading-relaxed mb-3">Upgrade to Premium for up to 500 projects.</p>
+                    <p className="text-slate-300 text-xs leading-relaxed mb-3">Upgrade to Monthly or Founder Deal for unlimited projects.</p>
                     <button
                       onClick={() => { setShowLimitTooltip(false); handleUpgrade(); }}
                       disabled={checkoutLoading}
@@ -306,7 +304,7 @@ export default function Dashboard({ onSelectProject, onSettings, onPlanLoaded, u
             {isPremium ? (
               <span className="inline-flex items-center gap-1.5 bg-amber-50 dark:bg-amber-950 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800 text-xs font-semibold px-2.5 py-1 rounded-full">
                 <Sparkles className="w-3 h-3" />
-                Premium · Up to 500 projects
+                Premium · Unlimited projects
               </span>
             ) : (
               <button
@@ -334,7 +332,7 @@ export default function Dashboard({ onSelectProject, onSettings, onPlanLoaded, u
               </div>
               <div>
                 <p className="text-white font-semibold text-sm">Upgrade to Premium</p>
-                <p className="text-blue-100 text-sm mt-0.5">Up to 500 projects for just <span className="font-semibold text-white">$9.99/month</span>. Cancel anytime.</p>
+                <p className="text-blue-100 text-sm mt-0.5">Unlimited projects for just <span className="font-semibold text-white">$9.99/month</span>. Cancel anytime.</p>
               </div>
             </div>
             <button
@@ -371,7 +369,7 @@ export default function Dashboard({ onSelectProject, onSettings, onPlanLoaded, u
             <div className="flex items-start gap-3 flex-1 min-w-0">
               <Lock className="w-4 h-4 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
               <p className="text-amber-800 dark:text-amber-300 text-sm">
-                <span className="font-semibold">Free plan limit reached.</span> You've used all {FREE_LIMIT} free projects.
+                <span className="font-semibold">Free plan limit reached.</span> You can have {FREE_PROJECT_LIMIT} project on the free plan.
               </p>
             </div>
             <button
@@ -447,8 +445,6 @@ export default function Dashboard({ onSelectProject, onSettings, onPlanLoaded, u
                 <div className="px-5 pb-3 flex flex-wrap items-center gap-x-2 gap-y-1">
                   <ShareLinkAction
                     project={project}
-                    isPremium={isPremium}
-                    onUpgrade={handleUpgrade}
                     onProjectUpdate={handleProjectShareUpdate}
                   />
                   <span className="text-slate-300 dark:text-slate-700 text-xs">·</span>

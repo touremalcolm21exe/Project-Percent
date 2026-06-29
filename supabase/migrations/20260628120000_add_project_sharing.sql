@@ -2,7 +2,7 @@
   # Add public shareable project links
 
   Adds is_public + public_id columns to projects and RPC functions for:
-  - Owner-controlled sharing toggle (premium-gated)
+  - Owner-controlled sharing toggle (all plans)
   - Anonymous read-only access via stable /share/{public_id} URLs
 
   public_id is a non-guessable UUID, separate from the internal project id.
@@ -103,7 +103,7 @@ $$;
 REVOKE ALL ON FUNCTION public.get_shared_project(uuid) FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION public.get_shared_project(uuid) TO anon, authenticated;
 
--- ── Owner sharing toggle (premium-gated) ──────────────────────────────────────
+-- ── Owner sharing toggle (all authenticated owners) ───────────────────────────
 
 CREATE OR REPLACE FUNCTION public.set_project_sharing(
   p_project_id uuid,
@@ -116,22 +116,10 @@ SET search_path = public
 AS $$
 DECLARE
   v_uid uuid := auth.uid();
-  v_plan text;
   v_public_id uuid;
 BEGIN
   IF v_uid IS NULL THEN
     RAISE EXCEPTION 'Not authenticated';
-  END IF;
-
-  IF p_is_public THEN
-    SELECT plan
-    INTO v_plan
-    FROM public.user_profiles
-    WHERE id = v_uid;
-
-    IF v_plan IS DISTINCT FROM 'premium' THEN
-      RAISE EXCEPTION 'Premium plan required for public sharing';
-    END IF;
   END IF;
 
   IF p_is_public THEN

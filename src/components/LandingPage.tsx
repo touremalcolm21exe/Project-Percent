@@ -163,7 +163,7 @@ export default function LandingPage({ onLogin, onSignup }: LandingPageProps) {
           <p className="text-slate-500 dark:text-slate-400 text-center mb-12 text-lg">
             Start free. Upgrade when you need more.
           </p>
-          <div className="grid sm:grid-cols-2 gap-6 max-w-3xl mx-auto">
+          <div className="grid sm:grid-cols-3 gap-6 max-w-4xl mx-auto">
             {/* Free */}
             <div className="rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-8 flex flex-col">
               <div className="mb-6">
@@ -176,7 +176,8 @@ export default function LandingPage({ onLogin, onSignup }: LandingPageProps) {
               </div>
               <ul className="space-y-3 flex-1 mb-8">
                 {[
-                  'Up to 3 projects',
+                  '1 project',
+                  'Public shareable project link',
                   'Up to 100 milestones per project',
                   'Live percentage tracking',
                 ].map((f) => (
@@ -194,7 +195,7 @@ export default function LandingPage({ onLogin, onSignup }: LandingPageProps) {
               </button>
             </div>
 
-            {/* Premium */}
+            {/* Monthly */}
             <div className="rounded-2xl border-2 border-brand-400 p-8 flex flex-col relative bg-brand-50/40 dark:bg-brand-950/30">
               <div className="absolute -top-3.5 left-1/2 -translate-x-1/2">
                 <span className="bg-brand-gradient text-white text-xs font-bold px-3 py-1 rounded-full whitespace-nowrap">
@@ -202,20 +203,20 @@ export default function LandingPage({ onLogin, onSignup }: LandingPageProps) {
                 </span>
               </div>
               <div className="mb-6">
-                <h3 className="text-xl font-bold text-slate-900 dark:text-slate-100 mb-1">Premium</h3>
+                <h3 className="text-xl font-bold text-slate-900 dark:text-slate-100 mb-1">Monthly</h3>
                 <div className="flex items-baseline gap-1">
                   <span className="text-4xl font-bold text-slate-900 dark:text-slate-100">$9.99</span>
                   <span className="text-slate-500 dark:text-slate-400 text-sm">/ month</span>
                 </div>
-                <p className="text-slate-500 dark:text-slate-400 text-sm mt-2">For builders who mean business.</p>
+                <p className="text-slate-500 dark:text-slate-400 text-sm mt-2">Unlimited projects for builders who mean business.</p>
               </div>
               <ul className="space-y-3 flex-1 mb-8">
                 {[
-                  'Up to 500 projects',
+                  'Unlimited projects',
+                  'Shareable link on every project',
                   'Up to 100 milestones per project',
                   'Live percentage tracking',
                   'Custom progress bar colors',
-                  'Public shareable project links',
                 ].map((f) => (
                   <li key={f} className="flex items-center gap-2.5 text-slate-700 dark:text-slate-300 text-sm">
                     <Check className="w-4 h-4 text-brand-400 shrink-0" />
@@ -227,7 +228,38 @@ export default function LandingPage({ onLogin, onSignup }: LandingPageProps) {
                 onClick={onSignup}
                 className="w-full bg-brand-gradient text-white font-semibold py-3 rounded-xl text-sm transition-opacity hover:opacity-90 shadow-sm"
               >
-                Upgrade to Premium
+                Upgrade to Monthly
+              </button>
+            </div>
+
+            {/* Founder Deal */}
+            <div className="rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-8 flex flex-col">
+              <div className="mb-6">
+                <h3 className="text-xl font-bold text-slate-900 dark:text-slate-100 mb-1">Founder Deal</h3>
+                <div className="flex items-baseline gap-1">
+                  <span className="text-4xl font-bold text-slate-900 dark:text-slate-100">Lifetime</span>
+                </div>
+                <p className="text-slate-500 dark:text-slate-400 text-sm mt-2">One-time purchase. Unlimited projects forever.</p>
+              </div>
+              <ul className="space-y-3 flex-1 mb-8">
+                {[
+                  'Unlimited projects',
+                  'Shareable link on every project',
+                  'Up to 100 milestones per project',
+                  'Live percentage tracking',
+                  'Custom progress bar colors',
+                ].map((f) => (
+                  <li key={f} className="flex items-center gap-2.5 text-slate-700 dark:text-slate-300 text-sm">
+                    <Check className="w-4 h-4 text-brand-400 shrink-0" />
+                    {f}
+                  </li>
+                ))}
+              </ul>
+              <button
+                onClick={onSignup}
+                className="w-full border border-gray-300 dark:border-gray-600 hover:border-brand-400 dark:hover:border-brand-500 text-slate-800 dark:text-slate-200 hover:text-brand-700 dark:hover:text-brand-400 font-semibold py-3 rounded-xl text-sm transition-colors"
+              >
+                Get Founder Deal
               </button>
             </div>
           </div>
