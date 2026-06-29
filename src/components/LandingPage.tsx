@@ -208,11 +208,11 @@ export default function LandingPage({ onLogin, onSignup }: LandingPageProps) {
                   <span className="text-4xl font-bold text-slate-900 dark:text-slate-100">$9.99</span>
                   <span className="text-slate-500 dark:text-slate-400 text-sm">/ month</span>
                 </div>
-                <p className="text-slate-500 dark:text-slate-400 text-sm mt-2">Unlimited projects for builders who mean business.</p>
+                <p className="text-slate-500 dark:text-slate-400 text-sm mt-2">Up to 500 projects for builders who mean business.</p>
               </div>
               <ul className="space-y-3 flex-1 mb-8">
                 {[
-                  'Unlimited projects',
+                  'Up to 500 projects',
                   'Shareable link on every project',
                   'Up to 100 milestones per project',
                   'Live percentage tracking',
@@ -239,11 +239,11 @@ export default function LandingPage({ onLogin, onSignup }: LandingPageProps) {
                 <div className="flex items-baseline gap-1">
                   <span className="text-4xl font-bold text-slate-900 dark:text-slate-100">Lifetime</span>
                 </div>
-                <p className="text-slate-500 dark:text-slate-400 text-sm mt-2">One-time purchase. Unlimited projects forever.</p>
+                <p className="text-slate-500 dark:text-slate-400 text-sm mt-2">One-time purchase. Up to 500 projects forever.</p>
               </div>
               <ul className="space-y-3 flex-1 mb-8">
                 {[
-                  'Unlimited projects',
+                  'Up to 500 projects',
                   'Shareable link on every project',
                   'Up to 100 milestones per project',
                   'Live percentage tracking',

@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { startCheckout } from '../lib/checkout';
 import { useUserPlan } from '../hooks/useUserPlan';
+import { PAID_PROJECT_LIMIT } from '../lib/planLimits';
 import { checkPassword } from '../lib/passwordStrength';
 import type { ThemePreference } from '../lib/useTheme';
 import {
@@ -478,7 +479,7 @@ function SubscriptionSection() {
                     {plan === 'premium' ? 'Paid plan' : 'Free'}
                   </p>
                   <p className="text-xs text-slate-500 dark:text-slate-400">
-                    {plan === 'premium' ? 'Unlimited projects · Shareable links on every project' : '1 project · Shareable link included'}
+                    {plan === 'premium' ? `Up to ${PAID_PROJECT_LIMIT} projects · Shareable links on every project` : '1 project · Shareable link included'}
                   </p>
                 </div>
               </div>
@@ -567,7 +568,7 @@ function SubscriptionSection() {
                     </div>
                     <div>
                       <p className="text-white font-semibold text-sm">Upgrade to Monthly</p>
-                      <p className="text-blue-100 text-xs mt-0.5">Unlimited projects for just <span className="font-semibold text-white">$9.99/month</span>. Cancel anytime.</p>
+                      <p className="text-blue-100 text-xs mt-0.5">Up to {PAID_PROJECT_LIMIT} projects for just <span className="font-semibold text-white">$9.99/month</span>. Cancel anytime.</p>
                     </div>
                   </div>
                   <button
@@ -584,7 +585,7 @@ function SubscriptionSection() {
                 </div>
                 <ul className="space-y-1.5 px-1">
                   {[
-                    'Unlimited projects',
+                    `Up to ${PAID_PROJECT_LIMIT} projects`,
                     'Shareable link on every project',
                     'Custom progress bar colors',
                   ].map((f) => (

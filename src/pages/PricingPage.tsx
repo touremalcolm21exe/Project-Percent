@@ -55,7 +55,7 @@ export function PricingPage() {
             Choose Your Plan
           </h2>
           <p className="mt-4 text-xl text-gray-600">
-            Unlock unlimited projects and advanced features
+            Up to 500 projects and advanced features on paid plans
           </p>
         </div>
 
@@ -155,7 +155,7 @@ export function PricingPage() {
                   </li>
                   <li className="flex space-x-3">
                     <Check className="flex-shrink-0 h-5 w-5 text-green-500" />
-                    <span className="text-sm text-gray-500">Unlimited projects</span>
+                    <span className="text-sm text-gray-500">Up to 500 projects</span>
                   </li>
                   <li className="flex space-x-3">
                     <Check className="flex-shrink-0 h-5 w-5 text-green-500" />
